@@ -24,6 +24,7 @@
         <compClass>CompEquippable</compClass>
       </li>
       <li Class="CompProperties_Biocodable" />
+      <li Class="Polarisbloc_SecurityForce.CompProperties_RelicHistory" />
       <li Class="CompProperties_Styleable"></li>
     </comps>
     <graphicData>

@@ -47,18 +47,17 @@ public class CaniculaBullet : Bullet
 			}
 		}
 
-		// Relic primaries force a brain hit when Ideology is active
-		if (ModsConfig.IdeologyActive)
+		// Current and former relic primaries force a brain hit. Vanilla relic status
+		// can disappear after its precept is removed and the save is reloaded, so the
+		// weapon keeps its own persistent relic history.
+		if (brain != null && Launcher is Pawn shooter)
 		{
-            if (Launcher is Pawn shooter)
-            {
-                Thing primary = shooter.equipment?.Primary;
-                if (primary != null && ReliquaryUtility.IsRelic(primary))
-                {
-                    dinfo.SetHitPart(brain);
-                }
-            }
-        }
+			Thing primary = shooter.equipment?.Primary;
+			if (primary != null && primary.IsOrWasRelic())
+			{
+				dinfo.SetHitPart(brain);
+			}
+		}
 
 		// Extra EMP tick based on final DamageInfo
 		DamageInfo emp = new(dinfo) { Def = DamageDefOf.EMP };
@@ -69,7 +68,18 @@ public class CaniculaBullet : Bullet
 	{
 		Map map = Map;
 		IntVec3 position = Position;
-		base.Impact(hitThing, blockedByShield);
+
+		// Bullet.Impact already applies the projectile's damage. Calling it here and
+		// then running the custom damage code below would damage the target twice.
+		// Perform only Projectile.Impact's common impact cleanup instead; C# cannot
+		// call a grandparent implementation directly.
+		GenClamor.DoClamor(this, 12f, ClamorDefOf.Impact);
+		if (!blockedByShield && def.projectile.landedEffecter != null)
+		{
+			def.projectile.landedEffecter.Spawn(ExactPosition.ToIntVec3(), map).Cleanup();
+		}
+		Destroy();
+
 		BattleLogEntry_RangedImpact val = new BattleLogEntry_RangedImpact(launcher, hitThing, intendedTarget.Thing, equipmentDef, def, targetCoverDef);
 		Find.BattleLog.Add((LogEntry)(object)val);
 		NotifyImpact(hitThing, map, position);

@@ -347,47 +347,38 @@ public class PolarisShieldBelt_IV : Apparel
 
 	private void TryShotLightning(DamageInfo dinfo)
 	{
-		//IL_00ff: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0104: Unknown result type (might be due to invalid IL or missing references)
-		//IL_010e: Expected O, but got Unknown
-		//IL_0137: Unknown result type (might be due to invalid IL or missing references)
-		//IL_013c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0146: Expected O, but got Unknown
-		//IL_0086: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0095: Expected O, but got Unknown
-		//IL_00c1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c6: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00d0: Expected O, but got Unknown
-		if (dinfo.Instigator == null || !canLightning || dinfo.Instigator.def == ThingDefOf.Fire)
+		Thing instigator = dinfo.Instigator;
+		if (instigator == null || !canLightning || instigator.def == ThingDefOf.Fire)
 		{
 			return;
 		}
-		if (dinfo.Instigator.Faction != null)
+		if (instigator.Faction != null)
 		{
-			if (dinfo.Instigator.Faction != (Wearer).Faction)
+			if (instigator.Faction != (Wearer).Faction)
 			{
-				if (dinfo.Instigator is Building)
+				if (instigator is Building || CanLightning)
 				{
-					Map mapHeld = dinfo.Instigator.MapHeld;
-					mapHeld.weatherManager.eventHandler.AddEvent((WeatherEvent)new WeatherEvent_LightningStrike(mapHeld, dinfo.Instigator.PositionHeld));
-				}
-				else if (CanLightning)
-				{
-					Map mapHeld2 = dinfo.Instigator.MapHeld;
-					mapHeld2.weatherManager.eventHandler.AddEvent((WeatherEvent)new WeatherEvent_LightningStrike(mapHeld2, dinfo.Instigator.PositionHeld));
+					TryQueueLightningStrike(instigator);
 				}
 			}
 		}
-		else if (dinfo.Instigator is Building)
+		else if (instigator is Building || CanLightning)
 		{
-			Map mapHeld3 = dinfo.Instigator.MapHeld;
-			mapHeld3.weatherManager.eventHandler.AddEvent((WeatherEvent)new WeatherEvent_LightningStrike(mapHeld3, dinfo.Instigator.PositionHeld));
+			TryQueueLightningStrike(instigator);
 		}
-		else if (CanLightning)
+	}
+
+	private static void TryQueueLightningStrike(Thing target)
+	{
+		if (target == null)
 		{
-			Map mapHeld4 = dinfo.Instigator.MapHeld;
-			mapHeld4.weatherManager.eventHandler.AddEvent((WeatherEvent)new WeatherEvent_LightningStrike(mapHeld4, dinfo.Instigator.PositionHeld));
+			return;
 		}
+		Map mapHeld = target.MapHeld;
+		if (mapHeld?.weatherManager?.eventHandler == null)
+		{
+			return;
+		}
+		mapHeld.weatherManager.eventHandler.AddEvent((WeatherEvent)new WeatherEvent_LightningStrike(mapHeld, target.PositionHeld));
 	}
 }
